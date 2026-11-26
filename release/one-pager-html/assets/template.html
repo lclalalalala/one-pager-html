@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One-Pager 标题</title>
+
+<!-- ============================================================
+     Layer 1 · 文本源（唯一事实来源，先改这里，再同步视觉）
+     约定：# 标题；## 视觉章节；## xxx [appendix] 附录章节
+     推荐：每个 ## 下第一行写一句话结论（纯事实呈现时可省略）
+     禁止：内容中出现 "</script" 字样
+     ============================================================ -->
+<script type="text/markdown" id="onepager-source">
+# One-Pager 标题
+
+## 核心结论
+一句话结论写在这里。
+- 支撑事实一
+- 支撑事实二
+
+## 关键数据
+一句话结论写在这里。
+
+| 指标 | 数值 | 变化 |
+| --- | --- | --- |
+| 示例指标 | 100 | +10% |
+
+## 明细数据 [appendix]
+完整的原始数据与口径说明放在这里，页面上折叠展示。
+</script>
+
+<style>
+/* ========== 设计令牌：视觉风格从这里改，布局骨架不动 ========== */
+:root {
+  --color-bg: #ffffff;
+  --color-surface: #f6f7f9;
+  --color-text: #1a1d21;
+  --color-muted: #5c6470;
+  --color-accent: #2563eb;
+  --color-border: #e3e6ea;
+  --font-body: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgb(0 0 0 / .08);
+  --content-max: 960px;
+  --space: clamp(1rem, 2.5vw, 2rem);
+}
+
+/* ========== 布局骨架：负责手机/桌面适配，可替换实现但保住指标 ========== */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+.page {
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding: var(--space);
+}
+section[data-source] { margin-block: calc(var(--space) * 1.5); }
+h1 { font-size: clamp(1.5rem, 4vw, 2.25rem); line-height: 1.25; margin-block: 0 .5em; }
+h2 { font-size: clamp(1.15rem, 3vw, 1.5rem); line-height: 1.3; margin-block: 0 .6em; }
+p { margin-block: .5em; }
+a { color: var(--color-accent); }
+img, video { max-width: 100%; height: auto; }
+svg { max-width: 100%; height: auto; }
+
+/* 关键结论区：让结论在视觉上占主导 */
+.takeaway {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space);
+}
+/* 自适应网格：手机单列，桌面按内容自动多列 */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: var(--space);
+}
+.muted { color: var(--color-muted); }
+
+/* ========== 表格：窄屏容器内滚动 + 堆叠成卡片 ========== */
+.table-wrap {
+  overflow: auto;
+  max-inline-size: 100%;
+  max-block-size: min(500px, 80vh);
+  container-type: inline-size;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+table { border-collapse: separate; border-spacing: 0; inline-size: 100%; }
+caption { text-align: start; padding: .6em .8em; color: var(--color-muted); font-size: .875rem; }
+th, td { padding: .55em .8em; text-align: start; border-block-end: 1px solid var(--color-border); }
+thead { position: sticky; inset-block-start: 0; z-index: 1; }
+thead th { background: var(--color-surface); }
+tbody th { position: sticky; inset-inline-start: 0; background: var(--color-bg); font-weight: 600; }
+@container (width < 600px) {
+  .table-wrap table, .table-wrap tbody, .table-wrap tr, .table-wrap th, .table-wrap td { display: block; }
+  .table-wrap thead { display: none; }
+  .table-wrap tr { border-block-end: 2px solid var(--color-border); padding-block: .4em; }
+  .table-wrap tbody th { position: static; background: var(--color-surface); }
+  .table-wrap td::before { content: attr(data-label) ": "; color: var(--color-muted); font-size: .875rem; }
+}
+
+/* ========== 附录：默认折叠 ========== */
+details.appendix {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-block: var(--space);
+  background: var(--color-surface);
+}
+details.appendix > summary {
+  cursor: pointer;
+  padding: .8em 1em;
+  min-height: 44px;
+  font-weight: 600;
+}
+details.appendix > .appendix-body { padding: 0 1em 1em; }
+
+/* ========== 纯文本查看按钮 + 对话框 ========== */
+#plain-text-btn {
+  position: fixed;
+  inset-block-end: 1rem;
+  inset-inline-end: 1rem;
+  z-index: 10;
+  min-height: 44px;
+  min-width: 44px;
+  padding: .5em 1em;
+  font: inherit;
+  font-size: .875rem;
+  color: var(--color-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+dialog#plain-text-dialog {
+  inline-size: min(720px, calc(100vw - 2rem));
+  max-block-size: 85vh;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space);
+}
+dialog#plain-text-dialog:modal { overscroll-behavior: contain; }
+dialog#plain-text-dialog::backdrop { background: rgb(0 0 0 / .4); overscroll-behavior: contain; }
+#plain-text-dialog pre {
+  font-family: var(--font-mono);
+  font-size: .875rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 1em;
+  overflow: auto;
+  max-block-size: 60vh;
+}
+.dialog-actions { display: flex; gap: .75rem; justify-content: flex-end; }
+.dialog-actions button {
+  min-height: 44px;
+  padding: .5em 1.2em;
+  font: inherit;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+.dialog-actions button.primary { background: var(--color-accent); color: #fff; border-color: transparent; }
+
+@media print { #plain-text-btn { display: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>One-Pager 标题</h1>
+    <p class="muted">副标题 / 日期 / 作者（可选）</p>
+  </header>
+
+  <!-- Layer 2 · 视觉层：每个 section 的 data-source 精确对应文本层的 ## 标题 -->
+  <section data-source="核心结论">
+    <h2>核心结论</h2>
+    <p class="takeaway">一句话结论写在这里。</p>
+    <div class="grid">
+      <div class="card">支撑事实一</div>
+      <div class="card">支撑事实二</div>
+    </div>
+    <p><a href="#appendix-明细数据">详情 →</a></p>
+  </section>
+
+  <section data-source="关键数据">
+    <h2>关键数据</h2>
+    <p class="takeaway">一句话结论写在这里。</p>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="关键数据表">
+      <table>
+        <thead>
+          <tr><th>指标</th><th>数值</th><th>变化</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>示例指标</th>
+            <td data-label="数值">100</td>
+            <td data-label="变化">+10%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- 图表示例：内联 SVG，viewBox 自适应。替换为真实图表。 -->
+    <svg viewBox="0 0 320 120" width="320" height="120" role="img" aria-label="示例趋势图" style="margin-top:1em; width:100%; max-width:480px">
+      <polyline points="10,100 80,70 150,85 220,40 310,20" fill="none"
+                stroke="var(--color-accent)" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <!-- 扩展挂载位示例：其他 skill 生成的交互内容放这里 -->
+    <!-- <div data-embed="chart-1" data-source="关键数据"></div> -->
+  </section>
+
+  <!-- Layer 3 · 附录层：对应文本层带 [appendix] 的章节，默认折叠 -->
+  <details class="appendix" id="appendix-明细数据" data-source="明细数据">
+    <summary>明细数据</summary>
+    <div class="appendix-body">
+      <p>完整的原始数据与口径说明放在这里。</p>
+    </div>
+  </details>
+
+</div>
+
+<button type="button" id="plain-text-btn" command="show-modal" commandfor="plain-text-dialog">纯文本</button>
+<dialog id="plain-text-dialog" aria-labelledby="plain-text-title" closedby="any">
+  <h2 id="plain-text-title">文本 One-Pager</h2>
+  <pre id="plain-text-pre"></pre>
+  <div class="dialog-actions">
+    <button type="button" id="plain-text-copy" class="primary">复制全文</button>
+    <form method="dialog"><button>关闭</button></form>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  var source = document.getElementById('onepager-source').textContent.trim();
+  var dialog = document.getElementById('plain-text-dialog');
+  var openBtn = document.getElementById('plain-text-btn');
+  var pre = document.getElementById('plain-text-pre');
+  var copyBtn = document.getElementById('plain-text-copy');
+
+  pre.textContent = source;
+
+  if (!('commandForElement' in HTMLButtonElement.prototype)) {
+    openBtn.addEventListener('click', function () { dialog.showModal(); });
+  }
+  if (!('closedBy' in HTMLDialogElement.prototype)) {
+    var outside = function (e) {
+      var r = dialog.getBoundingClientRect();
+      return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+    };
+    var pressedOutside = false;
+    dialog.addEventListener('pointerdown', function (e) { pressedOutside = outside(e); });
+    dialog.addEventListener('pointerup', function (e) { if (pressedOutside && outside(e)) dialog.close(); });
+  }
+
+  copyBtn.addEventListener('click', function () {
+    var done = function () {
+      copyBtn.textContent = '已复制 ✓';
+      setTimeout(function () { copyBtn.textContent = '复制全文'; }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(source).then(done, function () { fallback(); });
+    } else { fallback(); }
+    function fallback() {
+      var range = document.createRange();
+      range.selectNodeContents(pre);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      try { document.execCommand('copy'); done(); } catch (e) { /* 用户可手动复制选中内容 */ }
+      sel.removeAllRanges();
+    }
+  });
+})();
+</script>
+</body>
+</html>
